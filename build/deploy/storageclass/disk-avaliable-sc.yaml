@@ -1,0 +1,9 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: alicloud-disk-available
+provisioner: diskplugin.csi.alibabacloud.com
+parameters:
+  type: available
+reclaimPolicy: Delete
+allowVolumeExpansion: true
