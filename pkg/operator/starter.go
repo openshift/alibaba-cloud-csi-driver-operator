@@ -82,8 +82,6 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 			"storageclass/disk-essd-sc.yaml",
 			"storageclass/disk-ssd-sc.yaml",
 			"storageclass/disk-topology-sc.yaml",
-			"plugin/csi-plugin.yaml",
-			"plugin/csi-provisioner.yaml",
 		},
 	).WithCSIConfigObserverController(
 		"AlibabaCloudDriverCSIConfigObserverController",
@@ -91,7 +89,7 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 	).WithCSIDriverControllerService(
 		"AlibabaCloudDriverControllerServiceController",
 		ReadFile,
-		"controller.yaml",
+		"plugin/csi-provisioner.yaml",
 		kubeClient,
 		kubeInformersForNamespaces.InformersFor(defaultNamespace),
 		configInformers,
@@ -107,16 +105,11 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 	).WithCSIDriverNodeService(
 		"AlibabaCloudDriverNodeServiceController",
 		ReadFile,
-		"node.yaml",
+		"plugin/csi-plugin.yaml",
 		kubeClient,
 		kubeInformersForNamespaces.InformersFor(defaultNamespace),
 		nil, // Node doesn't need to react to any changes
 		csidrivernodeservicecontroller.WithObservedProxyDaemonSetHook(),
-	).WithServiceMonitorController(
-		"AlibabaCloudDriverServiceMonitorController",
-		dynamicClient,
-		ReadFile,
-		"servicemonitor.yaml",
 	)
 	if err != nil {
 		return err
