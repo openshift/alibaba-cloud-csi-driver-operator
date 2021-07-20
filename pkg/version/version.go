@@ -45,4 +45,3 @@ func init() {
 
 	prometheus.MustRegister(buildInfo)
 }
-

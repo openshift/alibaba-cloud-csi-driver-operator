@@ -4,10 +4,10 @@ LABEL description="Alibaba Cloud Csi Driver Operator"
 
 COPY alibaba-cloud-csi-driver-operator /bin/alibaba-cloud-csi-driver-operator
 
-COPY /deploy/plugin /deploy/
-COPY /deploy/rbac /deploy/
-COPY /deploy/storageclass /deploy/
-COPY /deploy/driver /deploy/
+COPY /assets/plugin /assets/
+COPY /assets/rbac /assets/
+COPY /assets/storageclass /assets/
+COPY /assets/driver /assets/
 
 RUN chmod +x /bin/alibaba-cloud-csi-driver-operator
 
