@@ -1,14 +1,10 @@
-FROM registry.cn-hangzhou.aliyuncs.com/plugins/centos:7.9.2009
-LABEL maintainers="Alibaba Cloud Authors"
-LABEL description="Alibaba Cloud Csi Driver Operator"
+FROM registry.ci.openshift.org/ocp/builder:rhel-8-golang-1.16-openshift-4.10 AS builder
+WORKDIR /go/src/github.com/openshift/alibaba-disk-csi-driver-operator
+COPY . .
+RUN make
 
-COPY alibaba-cloud-csi-driver-operator /bin/alibaba-cloud-csi-driver-operator
-
-COPY /assets/plugin /assets/
-COPY /assets/rbac /assets/
-COPY /assets/storageclass /assets/
-COPY /assets/driver /assets/
-
-RUN chmod +x /bin/alibaba-cloud-csi-driver-operator
-
-ENTRYPOINT ["/bin/alibaba-cloud-csi-driver-operator"]
+FROM registry.ci.openshift.org/ocp/4.10:base
+COPY --from=builder /go/src/github.com/openshift/alibaba-disk-csi-driver-operator/bin/alibaba-disk-csi-driver-operator /usr/bin/
+ENTRYPOINT ["/usr/bin/alibaba-disk-csi-driver-operator"]
+LABEL io.k8s.display-name="OpenShift Alibaba Disk CSI Driver Operator" \
+	io.k8s.description="The Alibala Disk CSI Driver Operator installs and maintains the Alibaba Disk CSI Driver on a cluster."

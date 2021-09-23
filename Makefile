@@ -1,44 +1,33 @@
-IMG ?= controller:latest
-
 all: build
+.PHONY: all
 
-verify: fmt vet lint
+# Include the library makefile
+include $(addprefix ./vendor/github.com/openshift/build-machinery-go/make/, \
+	golang.mk \
+	targets/openshift/deps-gomod.mk \
+	targets/openshift/images.mk \
+)
 
-build: alibaba-cloud-csi-driver-operator
+# Run core verification and all self contained tests.
+#
+# Example:
+#   make check
+check: | verify test-unit
+.PHONY: check
 
-# Run go build to make alibaba-cloud-csi-driver-operator
-alibaba-cloud-csi-driver-operator:
-	go build -o bin/alibaba-loud-csi-driver-operator cmd/alibaba-cloud-csi-driver-operator/main.go
+IMAGE_REGISTRY?=registry.svc.ci.openshift.org
 
-# Run go fmt against code
-.PHONY: fmt
-fmt:
-	go fmt ./...
+# This will call a macro called "build-image" which will generate image specific targets based on the parameters:
+# $0 - macro name
+# $1 - target name
+# $2 - image ref
+# $3 - Dockerfile path
+# $4 - context directory for image build
+# It will generate target "image-$(1)" for building the image and binding it as a prerequisite to target "images".
+$(call build-image,alibaba-disk-csi-driver-operator,$(IMAGE_REGISTRY)/ocp/4.10:alibaba-disk-csi-driver-operator,./Dockerfile,.)
 
+clean:
+	$(RM) alibaba-disk-csi-driver-operator
+.PHONY: clean
 
-# Run go vet against code
-.PHONY: vet
-vet:
-	go vet ./...
-
-# Run golangci-lint against code
-.PHONY: lint
-lint: golangci-lint
-	( GOLANGCI_LINT_CACHE=$(PROJECT_DIR)/.cache $(GOLANGCI_LINT) run --timeout 10m )
-
-# Run go mod
-.PHONY: vendor
-vendor:
-	go mod tidy
-	go mod vendor
-	go mod verify
-
-# Build the docker image
-.PHONY: image
-image:
-	docker build -t ${IMG} .
-
-# Push the docker image
-.PHONY: push
-push:
-	docker push ${IMG}
+GO_TEST_PACKAGES :=./pkg/... ./cmd/...
