@@ -1,6 +1,6 @@
-module github.com/JiaoDean/alibaba-cloud-csi-driver-operator
+module github.com/openshift/alibaba-disk-csi-driver-operator
 
-go 1.14
+go 1.16
 
 require (
 	github.com/openshift/api v0.0.0-20210521075222-e273a339932a

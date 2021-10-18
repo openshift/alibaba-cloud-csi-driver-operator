@@ -16,8 +16,8 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/JiaoDean/alibaba-cloud-csi-driver-operator/pkg/operator"
-	"github.com/JiaoDean/alibaba-cloud-csi-driver-operator/pkg/version"
+	"github.com/openshift/alibaba-disk-csi-driver-operator/pkg/operator"
+	"github.com/openshift/alibaba-disk-csi-driver-operator/pkg/version"
 	"github.com/openshift/library-go/pkg/controller/controllercmd"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
