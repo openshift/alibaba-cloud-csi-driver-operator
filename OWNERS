@@ -5,4 +5,4 @@ approvers:
 - bertinatto
 - dobsonj
 component: "Storage"
-subcomponent: Kubernetes External Components
+subcomponent: "Operators"
