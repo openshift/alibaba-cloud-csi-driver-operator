@@ -48,18 +48,6 @@ spec:
               value: "15"
             - name: SERVICE_TYPE
               value: "plugin"
-            - name: ACCESS_KEY_ID
-              valueFrom:
-                secretKeyRef:
-                  key: access_key_id
-                  name: alibaba-cloud-credentials
-                  optional: true
-            - name: ACCESS_KEY_SECRET
-              valueFrom:
-                secretKeyRef:
-                  key: access_key_secret
-                  name: alibaba-cloud-credentials
-                  optional: true
           volumeMounts:
             - name: kubelet-dir
               mountPath: /var/lib/kubelet
