@@ -48,6 +48,8 @@ spec:
               value: "15"
             - name: SERVICE_TYPE
               value: "plugin"
+            - name: DISK_AD_CONTROLLER
+              value: "true"
           volumeMounts:
             - name: kubelet-dir
               mountPath: /var/lib/kubelet
