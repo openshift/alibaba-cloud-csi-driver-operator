@@ -59,18 +59,10 @@ spec:
               value: "provisioner"
             - name: CLUSTER_ID
               value: "${CLUSTER_ID}"
-            - name: ACCESS_KEY_ID
-              valueFrom:
-                secretKeyRef:
-                  key: access_key_id
-                  name: alibaba-cloud-credentials
-                  optional: true
-            - name: ACCESS_KEY_SECRET
-              valueFrom:
-                secretKeyRef:
-                  key: access_key_secret
-                  name: alibaba-cloud-credentials
-                  optional: true
+            - name: ALIBABA_CLOUD_CREDENTIALS_FILE
+              value: "/etc/alibaba/credentials"
+            - name: DISK_AD_CONTROLLER
+              value: "true"
           ports:
             - name: healthz
               # Due to hostNetwork, this port is open on a node!
@@ -87,6 +79,8 @@ spec:
           volumeMounts:
             - name: socket-dir
               mountPath: /var/lib/csi/sockets/pluginproxy/
+            - name: credentials
+              mountPath: /etc/alibaba
           resources:
             requests:
               memory: 50Mi
@@ -285,3 +279,6 @@ spec:
         - name: metrics-serving-cert
           secret:
             secretName: alibaba-disk-csi-driver-controller-metrics-serving-cert
+        - name: credentials
+          secret:
+            secretName: alibaba-cloud-credentials

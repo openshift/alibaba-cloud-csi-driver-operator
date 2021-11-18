@@ -3,9 +3,9 @@ package operator
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"time"
 
+	"github.com/openshift/alibaba-disk-csi-driver-operator/assets"
 	"github.com/openshift/library-go/pkg/controller/factory"
 	"k8s.io/client-go/dynamic"
 	kubeclient "k8s.io/client-go/kubernetes"
@@ -28,15 +28,10 @@ const (
 	defaultNamespace     = "openshift-cluster-csi-drivers"
 	operatorName         = "alibaba-cloud-csi-driver-operator"
 	operandName          = "alibaba-cloud-csi-driver"
-	instanceName         = "csi.alibabacloud.com"
+	instanceName         = "diskplugin.csi.alibabacloud.com"
 	cloudConfigName      = "kube-cloud-config"
 	secretName           = "alibaba-cloud-credentials"
 )
-
-// ReadFile reads and returns the content of the named file.
-func ReadFile(path string) ([]byte, error) {
-	return ioutil.ReadFile(path)
-}
 
 func RunOperator(ctx context.Context, controllerConfig *controllercmd.ControllerContext) error {
 	kubeClient := kubeclient.NewForConfigOrDie(rest.AddUserAgent(controllerConfig.KubeConfig, operatorName))
@@ -69,7 +64,7 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 		kubeClient,
 		dynamicClient,
 		kubeInformersForNamespaces,
-		ReadFile,
+		assets.ReadFile,
 		[]string{
 			"storageclass.yaml",
 			"csidriver.yaml",
@@ -98,7 +93,7 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 		configInformers,
 	).WithCSIDriverControllerService(
 		"AlibabaCloudDriverControllerServiceController",
-		ReadFile,
+		assets.ReadFile,
 		"controller.yaml",
 		kubeClient,
 		kubeInformersForNamespaces.InformersFor(defaultNamespace),
@@ -114,7 +109,7 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 		csidrivercontrollerservicecontroller.WithReplicasHook(nodeInformer.Lister()),
 	).WithCSIDriverNodeService(
 		"AlibabaCloudDriverNodeServiceController",
-		ReadFile,
+		assets.ReadFile,
 		"node.yaml",
 		kubeClient,
 		kubeInformersForNamespaces.InformersFor(defaultNamespace),
