@@ -281,4 +281,4 @@ spec:
             secretName: alibaba-disk-csi-driver-controller-metrics-serving-cert
         - name: credentials
           secret:
-            secretName: alibaba-cloud-credentials
+            secretName: alibaba-disk-credentials
