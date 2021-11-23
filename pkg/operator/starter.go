@@ -24,24 +24,21 @@ import (
 )
 
 const (
-	cloudConfigNamespace = "openshift-config-managed"
-	defaultNamespace     = "openshift-cluster-csi-drivers"
-	operatorName         = "alibaba-cloud-csi-driver-operator"
-	operandName          = "alibaba-cloud-csi-driver"
-	instanceName         = "diskplugin.csi.alibabacloud.com"
-	cloudConfigName      = "kube-cloud-config"
-	secretName           = "alibaba-cloud-credentials"
+	defaultNamespace = "openshift-cluster-csi-drivers"
+	operatorName     = "alibaba-cloud-csi-driver-operator"
+	operandName      = "alibaba-cloud-csi-driver"
+	instanceName     = "diskplugin.csi.alibabacloud.com"
+	secretName       = "alibaba-cloud-credentials"
 )
 
 func RunOperator(ctx context.Context, controllerConfig *controllercmd.ControllerContext) error {
 	kubeClient := kubeclient.NewForConfigOrDie(rest.AddUserAgent(controllerConfig.KubeConfig, operatorName))
-	kubeInformersForNamespaces := v1helpers.NewKubeInformersForNamespaces(kubeClient, defaultNamespace, cloudConfigNamespace, "")
+	kubeInformersForNamespaces := v1helpers.NewKubeInformersForNamespaces(kubeClient, defaultNamespace, "")
 	secretInformer := kubeInformersForNamespaces.InformersFor(defaultNamespace).Core().V1().Secrets()
 	nodeInformer := kubeInformersForNamespaces.InformersFor("").Core().V1().Nodes()
 	configClient := configclient.NewForConfigOrDie(rest.AddUserAgent(controllerConfig.KubeConfig, operatorName))
 	configInformers := configinformers.NewSharedInformerFactory(configClient, 20*time.Minute)
 	infraInformer := configInformers.Config().V1().Infrastructures()
-	cloudConfigInformer := kubeInformersForNamespaces.InformersFor(cloudConfigNamespace).Core().V1().ConfigMaps()
 	gvr := opv1.SchemeGroupVersion.WithResource("clustercsidrivers")
 	operatorClient, dynamicInformers, err := goc.NewClusterScopedOperatorClientWithConfigName(controllerConfig.KubeConfig, gvr, instanceName)
 	if err != nil {
@@ -101,7 +98,6 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 		[]factory.Informer{
 			secretInformer.Informer(),
 			nodeInformer.Informer(),
-			cloudConfigInformer.Informer(),
 			infraInformer.Informer(),
 		},
 		csidrivercontrollerservicecontroller.WithSecretHashAnnotationHook(defaultNamespace, secretName, secretInformer),
