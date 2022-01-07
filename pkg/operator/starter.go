@@ -69,6 +69,7 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 			"controller_pdb.yaml",
 			"node_sa.yaml",
 			"service.yaml",
+			"volumesnapshotclass.yaml",
 			"rbac/attacher_role.yaml",
 			"rbac/attacher_binding.yaml",
 			"rbac/privileged_role.yaml",
