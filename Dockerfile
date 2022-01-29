@@ -1,9 +1,9 @@
-FROM registry.ci.openshift.org/ocp/builder:rhel-8-golang-1.17-openshift-4.10 AS builder
+FROM registry.ci.openshift.org/ocp/builder:rhel-8-golang-1.17-openshift-4.11 AS builder
 WORKDIR /go/src/github.com/openshift/alibaba-disk-csi-driver-operator
 COPY . .
 RUN make
 
-FROM registry.ci.openshift.org/ocp/4.10:base
+FROM registry.ci.openshift.org/ocp/4.11:base
 COPY --from=builder /go/src/github.com/openshift/alibaba-disk-csi-driver-operator/alibaba-disk-csi-driver-operator /usr/bin/
 ENTRYPOINT ["/usr/bin/alibaba-disk-csi-driver-operator"]
 LABEL io.k8s.display-name="OpenShift Alibaba Disk CSI Driver Operator" \
