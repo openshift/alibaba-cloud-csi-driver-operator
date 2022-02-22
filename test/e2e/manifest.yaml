@@ -23,6 +23,8 @@ DriverInfo:
     volumeLimits: false
     controllerExpansion: true
     nodeExpansion: true
-    snapshotDataSource: true
+    # Alibaba can take a snapshot of attached volume only, our tests try to take snapshot of unattached ones.
+    # It times out with "CreateSnapshot:: target disk: d-0xid8nzf2kqhzevjr9c1 must be attached"
+    snapshotDataSource: false
     topology: true
     multipods: true
