@@ -1,0 +1,28 @@
+# Test manifest for https://github.com/kubernetes/kubernetes/tree/master/test/e2e/storage/external
+ShortName: alicloud-disk
+StorageClass:
+  FromExistingClassName: alicloud-disk
+SnapshotClass:
+  FromName: true
+DriverInfo:
+  Name: diskplugin.csi.alibabacloud.com
+  SupportedSizeRange:
+    Min: 20Gi
+    Max: 16Ti
+  SupportedFsType:
+    xfs: {}
+    ext4: {}
+  SupportedMountOption:
+    dirsync: {}
+  TopologyKeys: ["topology.diskplugin.csi.alibabacloud.com/zone"]
+  Capabilities:
+    persistence: true
+    fsGroup: true
+    block: true
+    exec: true
+    volumeLimits: false
+    controllerExpansion: true
+    nodeExpansion: true
+    snapshotDataSource: true
+    topology: true
+    multipods: true
