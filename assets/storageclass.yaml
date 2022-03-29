@@ -7,6 +7,7 @@ metadata:
 provisioner: diskplugin.csi.alibabacloud.com
 parameters:
   type: available
+  volumeSizeAutoAvailable: "true"
 reclaimPolicy: Delete
 volumeBindingMode: WaitForFirstConsumer
 allowVolumeExpansion: true
