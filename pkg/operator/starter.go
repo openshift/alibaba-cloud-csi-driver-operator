@@ -65,7 +65,6 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 		kubeInformersForNamespaces,
 		assets.ReadFile,
 		[]string{
-			"storageclass.yaml",
 			"csidriver.yaml",
 			"controller_sa.yaml",
 			"controller_pdb.yaml",
@@ -126,6 +125,12 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 			trustedCAConfigMap,
 			configMapInformer,
 		),
+	).WithStorageClassController(
+		"AlibabaCloudStorageClassController",
+		assets.ReadFile,
+		"storageclass.yaml",
+		kubeClient,
+		kubeInformersForNamespaces.InformersFor(""),
 	)
 	if err != nil {
 		return err
