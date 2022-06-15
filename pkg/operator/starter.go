@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/openshift/alibaba-disk-csi-driver-operator/assets"
-	"github.com/openshift/library-go/pkg/controller/factory"
 	"k8s.io/client-go/dynamic"
 	kubeclient "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -16,6 +15,7 @@ import (
 	configclient "github.com/openshift/client-go/config/clientset/versioned"
 	configinformers "github.com/openshift/client-go/config/informers/externalversions"
 	"github.com/openshift/library-go/pkg/controller/controllercmd"
+	"github.com/openshift/library-go/pkg/controller/factory"
 	"github.com/openshift/library-go/pkg/operator/csi/csicontrollerset"
 	"github.com/openshift/library-go/pkg/operator/csi/csidrivercontrollerservicecontroller"
 	"github.com/openshift/library-go/pkg/operator/csi/csidrivernodeservicecontroller"
@@ -24,12 +24,14 @@ import (
 )
 
 const (
-	defaultNamespace   = "openshift-cluster-csi-drivers"
-	operatorName       = "alibaba-cloud-csi-driver-operator"
-	operandName        = "alibaba-cloud-csi-driver"
-	instanceName       = "diskplugin.csi.alibabacloud.com"
-	secretName         = "alibaba-cloud-credentials"
-	trustedCAConfigMap = "alibaba-disk-csi-driver-trusted-ca-bundle"
+	defaultNamespace     = "openshift-cluster-csi-drivers"
+	operatorName         = "alibaba-cloud-csi-driver-operator"
+	operandName          = "alibaba-cloud-csi-driver"
+	instanceName         = "diskplugin.csi.alibabacloud.com"
+	secretName           = "alibaba-cloud-credentials"
+	trustedCAConfigMap   = "alibaba-disk-csi-driver-trusted-ca-bundle"
+	infrastructureName   = "cluster"
+	resourceGroupIDParam = "resourceGroupID"
 )
 
 func RunOperator(ctx context.Context, controllerConfig *controllercmd.ControllerContext) error {
@@ -131,6 +133,7 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 		"storageclass.yaml",
 		kubeClient,
 		kubeInformersForNamespaces.InformersFor(""),
+		getResourceGroupHook(infraInformer.Lister()),
 	)
 	if err != nil {
 		return err
