@@ -31,7 +31,7 @@ const (
 	secretName           = "alibaba-cloud-credentials"
 	trustedCAConfigMap   = "alibaba-disk-csi-driver-trusted-ca-bundle"
 	infrastructureName   = "cluster"
-	resourceGroupIDParam = "resourceGroupID"
+	resourceGroupIDParam = "resourceGroupId"
 )
 
 func RunOperator(ctx context.Context, controllerConfig *controllercmd.ControllerContext) error {

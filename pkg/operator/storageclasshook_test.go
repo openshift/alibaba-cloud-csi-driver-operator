@@ -76,7 +76,7 @@ func TestStorageClassHook(t *testing.T) {
 				},
 			},
 			expectError: false,
-			expectedSC:  withParameters(sc(), "resourceGroupID", "myID"),
+			expectedSC:  withParameters(sc(), "resourceGroupId", "myID"),
 		},
 	}
 
