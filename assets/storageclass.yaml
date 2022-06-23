@@ -8,7 +8,7 @@ provisioner: diskplugin.csi.alibabacloud.com
 parameters:
   type: available
   volumeSizeAutoAvailable: "true"
-  # resourceGroupID will be added by the operator when necessary.
+  # resourceGroupId will be added by the operator when necessary.
 reclaimPolicy: Delete
 volumeBindingMode: WaitForFirstConsumer
 allowVolumeExpansion: true
