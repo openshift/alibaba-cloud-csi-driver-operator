@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/openshift/alibaba-disk-csi-driver-operator/assets"
+	"github.com/openshift/alibaba-disk-csi-driver-operator/pkg/operator/volumesnapshotclasscontroller"
 	"k8s.io/client-go/dynamic"
 	kubeclient "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -30,7 +31,6 @@ const (
 	instanceName         = "diskplugin.csi.alibabacloud.com"
 	secretName           = "alibaba-cloud-credentials"
 	trustedCAConfigMap   = "alibaba-disk-csi-driver-trusted-ca-bundle"
-	infrastructureName   = "cluster"
 	resourceGroupIDParam = "resourceGroupId"
 )
 
@@ -73,7 +73,6 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 			"node_sa.yaml",
 			"service.yaml",
 			"cabundle_cm.yaml",
-			"volumesnapshotclass.yaml",
 			"rbac/attacher_role.yaml",
 			"rbac/attacher_binding.yaml",
 			"rbac/privileged_role.yaml",
@@ -139,14 +138,30 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 		return err
 	}
 
+	volumeSnapshotClassAsset, err := assets.ReadFile("volumesnapshotclass.yaml")
+	if err != nil {
+		return err
+	}
+	volumeSnapshotCtrl := volumesnapshotclasscontroller.NewVolumeSnapshotClassController(
+		"VolumeSnapshotController",
+		volumeSnapshotClassAsset,
+		infraInformer,
+		dynamicClient,
+		operatorClient,
+		time.Minute,
+		controllerConfig.EventRecorder,
+	)
+
 	klog.Info("Starting the informers")
 	go kubeInformersForNamespaces.Start(ctx.Done())
 	go dynamicInformers.Start(ctx.Done())
 	go configInformers.Start(ctx.Done())
 
+	klog.Info("Starting VolumeSnapshotController")
+	go volumeSnapshotCtrl.Run(ctx, 1)
+
 	klog.Info("Starting controllerset")
 	go csiControllerSet.Run(ctx, 1)
-
 	<-ctx.Done()
 
 	return fmt.Errorf("stopped")

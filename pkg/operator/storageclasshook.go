@@ -1,8 +1,7 @@
 package operator
 
 import (
-	"fmt"
-
+	"github.com/openshift/alibaba-disk-csi-driver-operator/pkg/alibaba"
 	opv1 "github.com/openshift/api/operator/v1"
 	infralisterv1 "github.com/openshift/client-go/config/listers/config/v1"
 	"github.com/openshift/library-go/pkg/operator/csi/csistorageclasscontroller"
@@ -12,18 +11,11 @@ import (
 
 func getResourceGroupHook(infraLister infralisterv1.InfrastructureLister) csistorageclasscontroller.StorageClassHookFunc {
 	return func(_ *opv1.OperatorSpec, class *storagev1.StorageClass) error {
-		infra, err := infraLister.Get(infrastructureName)
+		resourceGroupID, err := alibaba.GetResourceGroupID(infraLister)
 		if err != nil {
 			return err
 		}
-		if infra.Status.PlatformStatus == nil {
-			return fmt.Errorf("error parsing infrastructure.status: platformStatus is nil")
-		}
-		if infra.Status.PlatformStatus.AlibabaCloud == nil {
-			return fmt.Errorf("error parsing infrastructure.status: platformStatus.alibabaCloud is nil")
-		}
-		if infra.Status.PlatformStatus.AlibabaCloud.ResourceGroupID != "" {
-			resourceGroupID := infra.Status.PlatformStatus.AlibabaCloud.ResourceGroupID
+		if resourceGroupID != "" {
 			klog.V(4).Infof("Using resourceGroupID %q", resourceGroupID)
 			if class.Parameters == nil {
 				class.Parameters = map[string]string{}
