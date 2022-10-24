@@ -22,6 +22,7 @@ import (
 	"github.com/openshift/library-go/pkg/operator/csi/csidrivernodeservicecontroller"
 	goc "github.com/openshift/library-go/pkg/operator/genericoperatorclient"
 	"github.com/openshift/library-go/pkg/operator/v1helpers"
+	apiextclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 )
 
 const (
@@ -50,6 +51,12 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 	}
 
 	dynamicClient, err := dynamic.NewForConfig(controllerConfig.KubeConfig)
+	if err != nil {
+		return err
+	}
+
+	// Create apiextension client. This is used to verify is a VolumeSnapshotClass CRD exists.
+	apiExtClient, err := apiextclient.NewForConfig(rest.AddUserAgent(controllerConfig.KubeConfig, operatorName))
 	if err != nil {
 		return err
 	}
@@ -146,6 +153,7 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 		"VolumeSnapshotController",
 		volumeSnapshotClassAsset,
 		infraInformer,
+		apiExtClient,
 		dynamicClient,
 		operatorClient,
 		time.Minute,
