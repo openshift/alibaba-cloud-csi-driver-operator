@@ -15,12 +15,16 @@ import (
 	"github.com/openshift/library-go/pkg/operator/events"
 	"github.com/openshift/library-go/pkg/operator/resource/resourceread"
 	"github.com/openshift/library-go/pkg/operator/v1helpers"
+	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	fakeapiextclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/fake"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic/fake"
 	"k8s.io/client-go/kubernetes/scheme"
 )
+
+const vscCRDName = "volumesnapshotclasses.snapshot.storage.k8s.io"
 
 func infra(resourceGroupID string) *configv1.Infrastructure {
 	return &configv1.Infrastructure{
@@ -33,6 +37,14 @@ func infra(resourceGroupID string) *configv1.Infrastructure {
 					ResourceGroupID: resourceGroupID,
 				},
 			},
+		},
+	}
+}
+
+func crd(name string) *v1.CustomResourceDefinition {
+	return &v1.CustomResourceDefinition{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: name,
 		},
 	}
 }
@@ -51,6 +63,7 @@ parameters:
 	tests := []struct {
 		name             string
 		infra            *configv1.Infrastructure
+		vsc              *v1.CustomResourceDefinition
 		inputManifest    string
 		expectedManifest string
 		expectError      bool
@@ -58,6 +71,7 @@ parameters:
 		{
 			name:             "no resource ID",
 			infra:            infra(""),
+			vsc:              crd(vscCRDName),
 			inputManifest:    volumeSnapshotClassHeader + "  resourceGroupID: ${RESOURCE_GROUP_ID}\n",
 			expectedManifest: volumeSnapshotClassHeader + "  resourceGroupID: \"\"\n",
 			expectError:      false,
@@ -65,12 +79,14 @@ parameters:
 		{
 			name:             "resource ID",
 			infra:            infra("MyID"),
+			vsc:              crd(vscCRDName),
 			inputManifest:    volumeSnapshotClassHeader + "  resourceGroupID: ${RESOURCE_GROUP_ID}\n",
 			expectedManifest: volumeSnapshotClassHeader + "  resourceGroupID: MyID\n",
 			expectError:      false,
 		},
 		{
 			name: "invalid infra",
+			vsc:  crd(vscCRDName),
 			infra: &configv1.Infrastructure{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "cluster",
@@ -85,6 +101,14 @@ parameters:
 			expectedManifest: "",
 			expectError:      true,
 		},
+		{
+			name:             "no VolumeSnapshotClass CRD",
+			infra:            infra(""),
+			vsc:              crd(""),
+			inputManifest:    volumeSnapshotClassHeader + "  resourceGroupID: ${RESOURCE_GROUP_ID}\n",
+			expectedManifest: "",
+			expectError:      false,
+		},
 	}
 	snap.AddToScheme(scheme.Scheme)
 
@@ -92,6 +116,7 @@ parameters:
 		test := tests[i]
 		t.Run(test.name, func(t *testing.T) {
 			dynamicClient := fake.NewSimpleDynamicClient(scheme.Scheme)
+			apiExtClient := fakeapiextclient.NewSimpleClientset(test.vsc)
 			fakeOperatorClient := v1helpers.NewFakeOperatorClientWithObjectMeta(
 				&metav1.ObjectMeta{
 					Name: "cluster",
@@ -112,6 +137,7 @@ parameters:
 				"test",
 				[]byte(test.inputManifest),
 				configInformerFactory.Config().V1().Infrastructures(),
+				apiExtClient,
 				dynamicClient,
 				fakeOperatorClient,
 				time.Minute*1,
