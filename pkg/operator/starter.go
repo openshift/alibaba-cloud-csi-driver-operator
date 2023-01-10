@@ -15,6 +15,8 @@ import (
 	opv1 "github.com/openshift/api/operator/v1"
 	configclient "github.com/openshift/client-go/config/clientset/versioned"
 	configinformers "github.com/openshift/client-go/config/informers/externalversions"
+	opclient "github.com/openshift/client-go/operator/clientset/versioned"
+	opinformers "github.com/openshift/client-go/operator/informers/externalversions"
 	"github.com/openshift/library-go/pkg/controller/controllercmd"
 	"github.com/openshift/library-go/pkg/controller/factory"
 	"github.com/openshift/library-go/pkg/operator/csi/csicontrollerset"
@@ -33,6 +35,7 @@ const (
 	secretName           = "alibaba-cloud-credentials"
 	trustedCAConfigMap   = "alibaba-disk-csi-driver-trusted-ca-bundle"
 	resourceGroupIDParam = "resourceGroupId"
+	resync               = 20 * time.Minute
 )
 
 func RunOperator(ctx context.Context, controllerConfig *controllercmd.ControllerContext) error {
@@ -42,7 +45,12 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 	configMapInformer := kubeInformersForNamespaces.InformersFor(defaultNamespace).Core().V1().ConfigMaps()
 	nodeInformer := kubeInformersForNamespaces.InformersFor("").Core().V1().Nodes()
 	configClient := configclient.NewForConfigOrDie(rest.AddUserAgent(controllerConfig.KubeConfig, operatorName))
-	configInformers := configinformers.NewSharedInformerFactory(configClient, 20*time.Minute)
+	configInformers := configinformers.NewSharedInformerFactory(configClient, resync)
+
+	// operator.openshift.io client, used for ClusterCSIDriver
+	operatorClientSet := opclient.NewForConfigOrDie(rest.AddUserAgent(controllerConfig.KubeConfig, operatorName))
+	operatorInformers := opinformers.NewSharedInformerFactory(operatorClientSet, resync)
+
 	infraInformer := configInformers.Config().V1().Infrastructures()
 	gvr := opv1.SchemeGroupVersion.WithResource("clustercsidrivers")
 	operatorClient, dynamicInformers, err := goc.NewClusterScopedOperatorClientWithConfigName(controllerConfig.KubeConfig, gvr, instanceName)
@@ -136,9 +144,12 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 	).WithStorageClassController(
 		"AlibabaCloudStorageClassController",
 		assets.ReadFile,
-		"storageclass.yaml",
+		[]string{
+			"storageclass.yaml",
+		},
 		kubeClient,
 		kubeInformersForNamespaces.InformersFor(""),
+		operatorInformers,
 		getResourceGroupHook(infraInformer.Lister()),
 	)
 	if err != nil {
@@ -164,6 +175,7 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 	go kubeInformersForNamespaces.Start(ctx.Done())
 	go dynamicInformers.Start(ctx.Done())
 	go configInformers.Start(ctx.Done())
+	go operatorInformers.Start(ctx.Done())
 
 	klog.Info("Starting VolumeSnapshotController")
 	go volumeSnapshotCtrl.Run(ctx, 1)
