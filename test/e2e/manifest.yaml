@@ -28,3 +28,4 @@ DriverInfo:
     snapshotDataSource: false
     topology: true
     multipods: true
+    multiplePVsSameID: true
