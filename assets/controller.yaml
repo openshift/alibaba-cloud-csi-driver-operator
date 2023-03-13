@@ -19,6 +19,8 @@ spec:
     metadata:
       labels:
         app: alibaba-disk-csi-driver-controller
+      annotations:
+        target.workload.openshift.io/management: '{"effect": "PreferredDuringScheduling"}'
     spec:
       hostNetwork: true
       serviceAccount: alibaba-disk-csi-driver-controller-sa
