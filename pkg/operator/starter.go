@@ -28,14 +28,15 @@ import (
 )
 
 const (
-	defaultNamespace     = "openshift-cluster-csi-drivers"
-	operatorName         = "alibaba-cloud-csi-driver-operator"
-	operandName          = "alibaba-cloud-csi-driver"
-	instanceName         = "diskplugin.csi.alibabacloud.com"
-	secretName           = "alibaba-cloud-credentials"
-	trustedCAConfigMap   = "alibaba-disk-csi-driver-trusted-ca-bundle"
-	resourceGroupIDParam = "resourceGroupId"
-	resync               = 20 * time.Minute
+	defaultNamespace      = "openshift-cluster-csi-drivers"
+	operatorName          = "alibaba-cloud-csi-driver-operator"
+	operandName           = "alibaba-cloud-csi-driver"
+	instanceName          = "diskplugin.csi.alibabacloud.com"
+	cloudCredSecretName   = "alibaba-cloud-credentials"
+	metricsCertSecretName = "alibaba-disk-csi-driver-controller-metrics-serving-cert"
+	trustedCAConfigMap    = "alibaba-disk-csi-driver-trusted-ca-bundle"
+	resourceGroupIDParam  = "resourceGroupId"
+	resync                = 20 * time.Minute
 )
 
 func RunOperator(ctx context.Context, controllerConfig *controllercmd.ControllerContext) error {
@@ -120,7 +121,8 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 			infraInformer.Informer(),
 			configMapInformer.Informer(),
 		},
-		csidrivercontrollerservicecontroller.WithSecretHashAnnotationHook(defaultNamespace, secretName, secretInformer),
+		csidrivercontrollerservicecontroller.WithSecretHashAnnotationHook(defaultNamespace, cloudCredSecretName, secretInformer),
+		csidrivercontrollerservicecontroller.WithSecretHashAnnotationHook(defaultNamespace, metricsCertSecretName, secretInformer),
 		csidrivercontrollerservicecontroller.WithObservedProxyDeploymentHook(),
 		csidrivercontrollerservicecontroller.WithCABundleDeploymentHook(
 			defaultNamespace,
