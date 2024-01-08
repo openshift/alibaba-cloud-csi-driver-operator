@@ -2,7 +2,6 @@ package operator
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/openshift/alibaba-disk-csi-driver-operator/assets"
@@ -186,5 +185,5 @@ func RunOperator(ctx context.Context, controllerConfig *controllercmd.Controller
 	go csiControllerSet.Run(ctx, 1)
 	<-ctx.Done()
 
-	return fmt.Errorf("stopped")
+	return nil
 }
